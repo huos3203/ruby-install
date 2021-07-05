@@ -12,7 +12,7 @@ case "$os_arch" in
 esac
 
 ruby_dir_name="truffleruby-$ruby_version-$truffleruby_platform-$truffleruby_arch"
-ruby_archive="$ruby_dir_name.tar.gz"
+ruby_archive="${ruby_archive:-$ruby_dir_name.tar.gz}"
 ruby_mirror="${ruby_mirror:-https://github.com/oracle/truffleruby/releases/download}"
 ruby_url="${ruby_url:-$ruby_mirror/vm-$ruby_version/$ruby_archive}"
 
@@ -21,6 +21,11 @@ ruby_url="${ruby_url:-$ruby_mirror/vm-$ruby_version/$ruby_archive}"
 #
 function install_ruby()
 {
+	if [[ "$install_dir" == '/usr/local' ]]; then
+		error "Unsupported see https://github.com/oracle/truffleruby/issues/1389"
+		return 1 ;;
+	fi
+
 	log "Installing truffleruby $ruby_version ..."
 	copy_into "$src_dir/$ruby_dir_name" "$install_dir" || return $?
 }

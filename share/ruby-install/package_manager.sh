@@ -1,47 +1,5 @@
 #!/usr/bin/env bash
 
-#
-# Auto-detect the package manager.
-#
-function detect_package_manager()
-{
-	case "$os_platform" in
-		Linux)
-			if [[ -f /etc/redhat-release ]]; then
-				if   command -v dnf >/dev/null; then
-					package_manager="dnf"
-				elif command -v yum >/dev/null; then
-					package_manager="yum"
-				fi
-			elif [[ -f /etc/debian_version ]]; then
-				if command -v apt-get >/dev/null; then
-					package_manager="apt"
-				fi
-			elif [[ -f /etc/SuSE-release ]]; then
-				if command -v zypper >/dev/null; then
-					package_manager="zypper"
-				fi
-			elif [[ -f /etc/arch-release ]]; then
-				if command -v pacman >/dev/null; then
-					package_manager="pacman"
-				fi
-			fi
-			;;
-		Darwin)
-			if   command -v brew >/dev/null; then
-				package_manager="brew"
-			elif command -v port >/dev/null; then
-				package_manager="port"
-			fi
-			;;
-		*BSD)
-			if command -v pkg >/dev/null; then
-				package_manager="pkg"
-			fi
-			;;
-	esac
-}
-
 function set_package_manager()
 {
 	case "$1" in
@@ -64,8 +22,14 @@ function install_packages()
 		pkg)	$sudo pkg install -y "$@" || return $?     ;;
 		brew)
 			local brew_owner="$(/usr/bin/stat -f %Su "$(command -v brew)")"
-			sudo -u "$brew_owner" brew install "$@" ||
-			sudo -u "$brew_owner" brew upgrade "$@" || return $?
+			local brew_sudo=""
+
+			if [[ "$brew_owner" != "$(id -un)" ]]; then
+				brew_sudo="sudo -u $brew_owner"
+			fi
+
+			$brew_sudo brew install "$@" ||
+			$brew_sudo brew upgrade "$@" || return $?
 			;;
 		pacman)
 			local missing_pkgs=($(pacman -T "$@"))
@@ -78,5 +42,3 @@ function install_packages()
 		"")	warn "Could not determine Package Manager. Proceeding anyway." ;;
 	esac
 }
-
-detect_package_manager

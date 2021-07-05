@@ -2,7 +2,7 @@
 
 shopt -s extglob
 
-ruby_install_version="0.8.0"
+ruby_install_version="0.8.2"
 ruby_install_dir="${BASH_SOURCE[0]%/*}"
 ruby_install_cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/ruby-install"
 
@@ -21,6 +21,9 @@ else
 	rubies_dir="$HOME/.rubies"
 fi
 
+source "$ruby_install_dir/logging.sh"
+source "$ruby_install_dir/system.sh"
+source "$ruby_install_dir/package_manager.sh"
 source "$ruby_install_dir/util.sh"
 source "$ruby_install_dir/ruby-versions.sh"
 
@@ -141,6 +144,7 @@ function parse_options()
 				;;
 			-u|--url)
 				ruby_url="$2"
+				ruby_archive="${ruby_url##*/}"
 				shift 2
 				;;
 			-m|--md5)
